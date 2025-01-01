@@ -77,6 +77,7 @@ export default function ResumeUploader({ onUploadComplete }: Props) {
 
       onUploadComplete(mockResume)
       
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error: unknown) {
       setError('Failed to upload file. Please try again.')
     } finally {

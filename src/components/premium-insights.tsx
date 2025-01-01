@@ -2,16 +2,16 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Zap, Lock } from 'lucide-react'
-import { ATSScoreCard } from '@/components/ats-score-card'
-import { KeywordAnalysis } from '@/components/keyword-analysis'
-import { FormatAnalysis } from '@/components/format-analysis'
-import { ImprovementSuggestions } from '@/components/improvement-suggestions'
+import { ATSScoreCard } from './ats-score-card'
+import { KeywordAnalysis } from './keyword-analysis'
+import { FormatAnalysis } from './format-analysis'
+import { ImprovementSuggestions } from './improvement-suggestions'
 import type { PremiumAnalysis } from '@/types'
 
 export default function PremiumInsights() {
   const [isPurchased, setIsPurchased] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const [analysis, setAnalysis] = useState<PremiumAnalysis | null>(null)
+  const [analysis] = useState<PremiumAnalysis | null>(null)
 
   const handlePurchase = async () => {
     setIsLoading(true)
@@ -19,9 +19,6 @@ export default function PremiumInsights() {
       // TODO: Implement Stripe payment
       await new Promise(resolve => setTimeout(resolve, 1500)) // Simulate payment
       setIsPurchased(true)
-      // TODO: Fetch actual analysis
-      // const analysis = await fetchAnalysis(resumeId)
-      // setAnalysis(analysis)
     } catch (error) {
       console.error('Payment failed:', error)
     } finally {
