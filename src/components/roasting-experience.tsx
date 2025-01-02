@@ -1,12 +1,17 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { motion, } from 'framer-motion'
-import { Flame, RefreshCcw, Share2, Zap } from 'lucide-react'
+import { motion } from 'framer-motion'
+import { Flame, Send, RefreshCcw, Zap } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Avatar } from '@/components/ui/avatar'
 import type { Resume } from '@/types'
-import RoastContent from '@/components/roast-content'
-import {UserReactions} from '@/components/user-reactions'
+
+interface Message {
+  type: 'roast' | 'advice' | 'user'
+  content: string
+}
 
 interface Props {
   resume: Resume
@@ -15,14 +20,54 @@ interface Props {
 }
 
 export default function RoastingExperience({ status, onReset }: Props) {
+  const [messages, setMessages] = useState<Message[]>([])
+  const [userInput, setUserInput] = useState('')
   const [showPremiumUpsell, setShowPremiumUpsell] = useState(false)
 
   useEffect(() => {
     if (status === 'completed') {
-      const timer = setTimeout(() => setShowPremiumUpsell(true), 10000)
-      return () => clearTimeout(timer)
+      // Initial roast messages
+      const initialMessages: Message[] = [
+        { 
+          type: 'roast', 
+          content: "Oh boy, where do I even start with this resume? Let's dive into this masterpiece of mediocrity..." 
+        },
+        {
+          type: 'roast',
+          content: "Your objective statement is so generic, it could've been written by a bot from 1995. 'Seeking to leverage my skills'? Everyone and their grandma is seeking to leverage their skills."
+        }
+      ]
+      
+      // Add messages with delay
+      let delay = 0
+      initialMessages.forEach((message) => {
+        setTimeout(() => {
+          setMessages(prev => [...prev, message])
+        }, delay)
+        delay += 2000
+      })
+
+      // Show premium upsell after some time
+      setTimeout(() => setShowPremiumUpsell(true), 10000)
     }
   }, [status])
+
+  const handleSendMessage = () => {
+    if (!userInput.trim()) return
+
+    // Add user message
+    setMessages(prev => [...prev, { type: 'user', content: userInput }])
+    
+    // Simulate roaster response
+    setTimeout(() => {
+      setMessages(prev => [...prev, {
+        type: 'roast',
+        content: "Nice try defending yourself, but let's be real here. Your resume still needs work!"
+      }])
+    }, 1000)
+
+    setUserInput('')
+  }
 
   if (status === 'roasting') {
     return (
@@ -47,49 +92,75 @@ export default function RoastingExperience({ status, onReset }: Props) {
   }
 
   return (
-    <div className="space-y-8">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-      >
-        <RoastContent />
-        <UserReactions />
-
-        <div className="flex justify-between items-center mt-8 pt-8 border-t">
-          <div className="flex gap-4">
-            <Button variant="outline" onClick={onReset}>
-              <RefreshCcw className="mr-2 h-4 w-4" />
-              Try Another Resume
-            </Button>
-            <Button variant="outline">
-              <Share2 className="mr-2 h-4 w-4" />
-              Share Roast
-            </Button>
+    <div className="h-[calc(100vh-8rem)] flex flex-col">
+      {/* Chat Messages */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        {messages.map((message, index) => (
+          <div
+            key={index}
+            className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
+          >
+            <div className={`flex items-start gap-2 max-w-[80%] ${
+              message.type === 'user' ? 'flex-row-reverse' : 'flex-row'
+            }`}>
+              <Avatar>
+                {message.type === 'user' ? 
+                  '👤' : 
+                  <Flame className="h-5 w-5 text-red-500" />
+                }
+              </Avatar>
+              <div className={`rounded-lg p-4 ${
+                message.type === 'user' 
+                  ? 'bg-red-600 text-white' 
+                  : 'bg-white border'
+              }`}>
+                {message.content}
+              </div>
+            </div>
           </div>
-        </div>
+        ))}
 
         {showPremiumUpsell && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mt-8"
-          >
-            <Card className="p-6 bg-gradient-to-r from-red-50 to-orange-50 border-red-100">
-              <h3 className="text-xl font-bold mb-3 flex items-center gap-2">
-                <Zap className="text-red-500" />
-                Want More Than Just a Roast?
-              </h3>
-              <p className="text-gray-600 mb-4">
-                Get detailed ATS insights, keyword analysis, and professional improvement suggestions for just $1.
-              </p>
-              <Button className="bg-red-600 hover:bg-red-700">
-                Upgrade to Premium
-                <Zap className="ml-2 h-4 w-4" />
-              </Button>
-            </Card>
-          </motion.div>
+          <Card className="p-6 bg-gradient-to-r from-red-50 to-orange-50 border-red-100">
+            <h3 className="text-xl font-bold mb-3 flex items-center gap-2">
+              <Zap className="text-red-500" />
+              Want More Than Just a Roast?
+            </h3>
+            <p className="text-gray-600 mb-4">
+              Get detailed ATS insights, keyword analysis, and professional improvement suggestions for just $1.
+            </p>
+            <Button className="bg-red-600 hover:bg-red-700">
+              Upgrade to Premium
+              <Zap className="ml-2 h-4 w-4" />
+            </Button>
+          </Card>
         )}
-      </motion.div>
+      </div>
+
+      {/* Input Area */}
+      <div className="border-t bg-white p-4">
+        <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            onClick={onReset}
+            className="shrink-0"
+          >
+            <RefreshCcw className="h-4 w-4" />
+          </Button>
+          <Input
+            value={userInput}
+            onChange={(e) => setUserInput(e.target.value)}
+            placeholder="Type your response..."
+            onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+          />
+          <Button 
+            onClick={handleSendMessage}
+            className="bg-red-600 hover:bg-red-700"
+          >
+            <Send className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
     </div>
   )
 }
