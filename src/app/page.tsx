@@ -186,7 +186,7 @@ export default function LandingPage() {
             <Button size="lg" variant="default" className="group bg-white text-red-600 hover:bg-gray-50 h-16 text-lg px-8 shadow-2xl shadow-red-900/20">
               Start Free Roast <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
             </Button>
-            <Button size="lg" variant="outline" className="group border-2 border-white text-white hover:bg-red-500 h-16 text-lg px-8">
+            <Button size="lg" variant="outline" className="group border-2 border-white text-black hover:bg-red-500 h-16 text-lg px-8">
               Upgrade to Premium for just $1<Zap className="ml-2 h-5 w-5 group-hover:animate-pulse" />
             </Button>
           </div>
