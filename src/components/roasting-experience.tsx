@@ -19,52 +19,51 @@ interface Props {
   onReset: () => void
 }
 
-export default function RoastingExperience({ status, onReset }: Props) {
+export default function RoastingExperience({ resume, status, onReset }: Props) {
   const [messages, setMessages] = useState<Message[]>([])
   const [userInput, setUserInput] = useState('')
   const [showPremiumUpsell, setShowPremiumUpsell] = useState(false)
+  
 
   useEffect(() => {
     if (status === 'completed') {
-      // Initial roast messages
-      const initialMessages: Message[] = [
-        { 
-          type: 'roast', 
-          content: "Oh boy, where do I even start with this resume? Let's dive into this masterpiece of mediocrity..." 
-        },
-        {
-          type: 'roast',
-          content: "Your objective statement is so generic, it could've been written by a bot from 1995. 'Seeking to leverage my skills'? Everyone and their grandma is seeking to leverage their skills."
-        }
-      ]
-      
-      // Add messages with delay
-      let delay = 0
-      initialMessages.forEach((message) => {
-        setTimeout(() => {
-          setMessages(prev => [...prev, message])
-        }, delay)
-        delay += 2000
+      fetch(`/api/roast`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ resumeId: resume.id }),
       })
-
-      // Show premium upsell after some time
-      setTimeout(() => setShowPremiumUpsell(true), 10000)
+        .then((res) => res.json())
+        .then((data) => {
+          const initialMessages: Message[] = data.messages.map((msg: string) => ({
+            type: 'roast',
+            content: msg,
+          }))
+          let delay = 0
+          initialMessages.forEach((message) => {
+            setTimeout(() => setMessages((prev) => [...prev, message]), delay)
+            delay += 2000
+          })
+          setTimeout(() => setShowPremiumUpsell(true), delay + 3000)
+        })
+        .catch((error) => console.error('Error fetching roast messages:', error))
     }
-  }, [status])
+  }, [status, resume])
 
   const handleSendMessage = () => {
     if (!userInput.trim()) return
 
-    // Add user message
-    setMessages(prev => [...prev, { type: 'user', content: userInput }])
-    
-    // Simulate roaster response
-    setTimeout(() => {
-      setMessages(prev => [...prev, {
-        type: 'roast',
-        content: "Nice try defending yourself, but let's be real here. Your resume still needs work!"
-      }])
-    }, 1000)
+    setMessages((prev) => [...prev, { type: 'user', content: userInput }])
+
+    fetch(`/api/respond`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userMessage: userInput }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        setMessages((prev) => [...prev, { type: 'roast', content: data.response }])
+      })
+      .catch((error) => console.error('Error fetching response:', error))
 
     setUserInput('')
   }

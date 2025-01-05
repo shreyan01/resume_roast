@@ -20,15 +20,13 @@ export default function ResumeUploader({ onUploadComplete }: Props) {
   const onDrop = useCallback((acceptedFiles: File[]) => {
     setError(null)
     const selectedFile = acceptedFiles[0]
-    
-    // Validate file type
+
     const allowedTypes = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']
     if (!allowedTypes.includes(selectedFile.type)) {
       setError('Please upload a PDF or DOCX file')
       return
     }
 
-    // Validate file size (5MB)
     if (selectedFile.size > 5 * 1024 * 1024) {
       setError('File size must be less than 5MB')
       return
@@ -54,31 +52,22 @@ export default function ResumeUploader({ onUploadComplete }: Props) {
     setUploadProgress(0)
 
     try {
-      // Simulate upload progress
-      for (let i = 0; i <= 100; i += 10) {
-        await new Promise(resolve => setTimeout(resolve, 200))
-        setUploadProgress(i)
+      const formData = new FormData()
+      formData.append('resume', file)
+
+      const response = await fetch(`/api/upload`, {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to upload file')
       }
 
-      // TODO: Replace with actual API call
-      // const formData = new FormData()
-      // formData.append('resume', file)
-      // const response = await fetch('/api/upload', { ... })
-
-      // Simulate a successful upload response
-      const mockResume: Resume = {
-        id: Math.random().toString(36).substr(2, 9),
-        userId: 'user123', // This would come from your auth system
-        fileName: file.name,
-        fileUrl: 'https://example.com/resume.pdf', // This would come from your storage
-        uploadedAt: new Date(),
-        status: 'processing'
-      }
-
-      onUploadComplete(mockResume)
-      
+      const resume: Resume = await response.json()
+      onUploadComplete(resume)
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (error: unknown) {
+    } catch (error) {
       setError('Failed to upload file. Please try again.')
     } finally {
       setUploading(false)
