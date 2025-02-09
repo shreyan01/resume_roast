@@ -1,9 +1,12 @@
 // Resume Types
 export interface Resume {
+  content: unknown
   id: string
+  name: string
   userId: string
   fileName: string
   fileUrl: string
+  size: number
   uploadedAt: Date
   status: 'processing' | 'roasting' | 'completed' | 'failed'
 }

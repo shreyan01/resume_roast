@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { Flame, Send, RefreshCcw, Zap } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -22,50 +22,82 @@ interface Props {
 export default function RoastingExperience({ resume, status, onReset }: Props) {
   const [messages, setMessages] = useState<Message[]>([])
   const [userInput, setUserInput] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
   const [showPremiumUpsell, setShowPremiumUpsell] = useState(false)
-  
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }
 
   useEffect(() => {
-    if (status === 'completed') {
-      fetch(`/api/roast`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ resumeId: resume.id }),
-      })
-        .then((res) => res.json())
-        .then((data) => {
-          const initialMessages: Message[] = data.messages.map((msg: string) => ({
-            type: 'roast',
-            content: msg,
-          }))
-          let delay = 0
-          initialMessages.forEach((message) => {
-            setTimeout(() => setMessages((prev) => [...prev, message]), delay)
-            delay += 2000
-          })
-          setTimeout(() => setShowPremiumUpsell(true), delay + 3000)
+    scrollToBottom()
+  }, [messages])
+
+  useEffect(() => {
+    const getInitialRoast = async () => {
+      setIsLoading(true)
+      try {
+        const response = await fetch('/api/roast', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ resumeText: resume.content })
         })
-        .catch((error) => console.error('Error fetching roast messages:', error))
+        
+        const data = await response.json()
+        if (data.status === 'success') {
+          setMessages([{
+            type: 'roast',
+            content: data.response
+          }])
+        }
+      } catch (error) {
+        console.error('Error getting roast:', error)
+      } finally {
+        setIsLoading(false)
+      }
     }
-  }, [status, resume])
 
-  const handleSendMessage = () => {
-    if (!userInput.trim()) return
+    if (status === 'completed') {
+      getInitialRoast()
+      const upsellTimer = setTimeout(() => setShowPremiumUpsell(true), 15000)
+      
+      return () => clearTimeout(upsellTimer)
+    }
+  }, [status, resume.content])
 
-    setMessages((prev) => [...prev, { type: 'user', content: userInput }])
+  const handleSendMessage = async () => {
+    if (!userInput.trim() || isLoading) return
 
-    fetch(`/api/respond`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userMessage: userInput }),
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        setMessages((prev) => [...prev, { type: 'roast', content: data.response }])
-      })
-      .catch((error) => console.error('Error fetching response:', error))
-
+    const newUserMessage = { role: 'user' as const, content: userInput }
+    setMessages(prev => [...prev, newUserMessage])
     setUserInput('')
+    setIsLoading(true)
+
+    try {
+        const response = await fetch('/api/chat', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                message: userInput,
+                conversationHistory: messages
+            })
+        })
+
+        const data = await response.json()
+        if (data.status === 'success') {
+            setMessages(prev => [...prev, {
+                role: 'assistant',
+                content: data.response
+            }])
+        }
+    } catch (error) {
+        console.error('Error sending message:', error)
+    } finally {
+        setIsLoading(false)
+    }
   }
 
   if (status === 'roasting') {

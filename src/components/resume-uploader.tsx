@@ -55,7 +55,7 @@ export default function ResumeUploader({ onUploadComplete }: Props) {
       const formData = new FormData()
       formData.append('resume', file)
 
-      const response = await fetch(`/api/upload`, {
+      const response = await fetch('/api/chat', {
         method: 'POST',
         body: formData,
       })
@@ -64,8 +64,13 @@ export default function ResumeUploader({ onUploadComplete }: Props) {
         throw new Error('Failed to upload file')
       }
 
-      const resume: Resume = await response.json()
-      onUploadComplete(resume)
+      const data = await response.json()
+      onUploadComplete({
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        content: data.response
+      })
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       setError('Failed to upload file. Please try again.')
