@@ -27,7 +27,7 @@ export default function LandingPage() {
         </h1>
         <p className="text-2xl text-gray-600 max-w-3xl mx-auto mb-12 leading-relaxed">
           Brutal honesty meets actionable insights. Get your resume torn apart by AI for free, 
-          or unlock premium ATS insights for just $1.
+          or unlock premium ATS insights for just $3/month.
         </p>
         <div className="flex flex-col sm:flex-row justify-center gap-6 max-w-2xl mx-auto">
           <Button onClick={() => router.push('/signup')} size="lg" variant="default" className="group bg-red-600 hover:bg-red-700 h-16 text-lg px-8 shadow-xl shadow-red-600/20 hover:translate-y-[-2px] transition-all duration-300">
@@ -35,7 +35,7 @@ export default function LandingPage() {
             Roast My Resume (Free)
           </Button>
           <Button size="lg" variant="outline" className="group border-2 border-red-600 text-red-600 hover:bg-red-50 h-16 text-lg px-8 hover:scale-105 transition-all duration-300">
-            $1 Premium Roast <Zap className="ml-2 h-5 w-5 group-hover:animate-pulse" />
+            $3/month Premium <Zap className="ml-2 h-5 w-5 group-hover:animate-pulse" />
           </Button>
         </div>
       </div>
@@ -91,9 +91,9 @@ export default function LandingPage() {
             <div className="h-16 w-16 rounded-2xl bg-red-100 flex items-center justify-center transform -rotate-3 group-hover:-rotate-6 transition-transform duration-300">
               <TrendingUp className="h-8 w-8 text-red-600" />
             </div>
-            <h3 className="text-2xl font-bold">ATS Insights ($1)</h3>
+            <h3 className="text-2xl font-bold">ATS Insights ($3/month)</h3>
             <p className="text-gray-600 text-lg leading-relaxed">
-              See exactly how ATS systems parse your resume and get a detailed scoring breakdown.
+              See exactly how ATS systems parse your resume and get a detailed scoring breakdown. Premium is just $3/month.
             </p>
             <div className="pt-4">
               <Button variant="ghost" className="text-red-600 p-0 hover:bg-transparent group">
@@ -108,7 +108,7 @@ export default function LandingPage() {
       <div className="bg-white py-28">
         <div className="max-w-7xl mx-auto px-4">
           <h2 className="text-5xl font-bold text-center mb-20">
-            What You Get for $1
+            What You Get for $3/month
           </h2>
           <div className="grid md:grid-cols-3 gap-10">
             {[
@@ -123,6 +123,10 @@ export default function LandingPage() {
               {
                 title: "Format Check",
                 description: "Learn if your resume format is optimized for ATS parsing"
+              },
+              {
+                title: "MAANG Resume Access",
+                description: "Access resumes from top tech companies"
               }
             ].map((feature, i) => (
               <div key={i} className="group bg-gray-50 p-10 rounded-3xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-2">
@@ -180,14 +184,14 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 text-center">
           <h2 className="text-5xl font-bold mb-10">Ready to face the truth?</h2>
           <p className="text-2xl mb-12 opacity-90 max-w-3xl mx-auto leading-relaxed">
-            Get roasted for free or unlock premium insights for just $1
+            Get roasted for free or unlock premium insights for just $3/month
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-6 max-w-2xl mx-auto">
             <Button size="lg" variant="default" className="group bg-white text-red-600 hover:bg-gray-50 h-16 text-lg px-8 shadow-2xl shadow-red-900/20">
               Start Free Roast <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
             </Button>
             <Button size="lg" variant="outline" className="group border-2 border-white text-black hover:bg-red-500 h-16 text-lg px-8">
-              Upgrade to Premium for just $1<Zap className="ml-2 h-5 w-5 group-hover:animate-pulse" />
+              Upgrade to Premium for just $3/month<Zap className="ml-2 h-5 w-5 group-hover:animate-pulse" />
             </Button>
           </div>
         </div>
