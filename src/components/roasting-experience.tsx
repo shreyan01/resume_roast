@@ -68,8 +68,7 @@ export default function RoastingExperience({ resume, status, onReset }: Props) {
 
   const handleSendMessage = async () => {
     if (!userInput.trim() || isLoading) return
-
-    const newUserMessage = { role: 'user' as const, content: userInput }
+    const newUserMessage = { role: 'user' as const, content: userInput, type: 'user' as const }
     setMessages(prev => [...prev, newUserMessage])
     setUserInput('')
     setIsLoading(true)
@@ -84,13 +83,14 @@ export default function RoastingExperience({ resume, status, onReset }: Props) {
                 message: userInput,
                 conversationHistory: messages
             })
-        })
+        }) 
 
         const data = await response.json()
         if (data.status === 'success') {
             setMessages(prev => [...prev, {
                 role: 'assistant',
-                content: data.response
+                content: data.response,
+                type: 'advice'  // Changed to valid type from Message union
             }])
         }
     } catch (error) {
