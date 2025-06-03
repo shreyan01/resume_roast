@@ -66,14 +66,20 @@ export default function ResumeUploader({ onUploadComplete }: Props) {
 
       const data = await response.json()
       onUploadComplete({
+        id: Math.random().toString(36).substr(2, 9),
+        userId: 'temp-user-id', // This should be replaced with actual user ID
         name: file.name,
+        fileName: file.name,
+        fileUrl: URL.createObjectURL(file),
         size: file.size,
         type: file.type,
-        content: data.response
+        content: data.response,
+        uploadedAt: new Date(),
+        status: 'completed'
       })
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (error) {
-      setError('Failed to upload file. Please try again.')
+    } catch (err) {
+      const error = err as Error
+      setError(`Failed to upload file: ${error.message}`)
     } finally {
       setUploading(false)
     }
