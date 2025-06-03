@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 
 const SYSTEM_PROMPT = `You are ResumeRoaster, a brutally honest and sarcastic AI that specializes in roasting resumes. Your personality:
 
@@ -30,8 +30,8 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const endpoint = process.env.NEXT_PUBLIC_AZURE_OPENAI_ENDPOINT;
-        const apiKey = process.env.NEXT_PUBLIC_AZURE_OPENAI_API_KEY;
+        const OLLAMA_ENDPOINT = process.env.OLLAMA_ENDPOINT || 'http://localhost:11434';
+        const MODEL = process.env.OLLAMA_MODEL || 'mistral';
 
         let messages = [];
         if (message && conversationHistory) {
@@ -53,30 +53,28 @@ export async function POST(request: NextRequest) {
         }
 
         const response = await axios.post(
-            `${endpoint}`,
+            `${OLLAMA_ENDPOINT}/api/chat`,
             {
-                messages,
-                max_tokens: 800,
-                temperature: 0.9,
-                presence_penalty: 0.6,
-                frequency_penalty: 0.3,
-            },
-            {
-                headers: {
-                    'Content-Type': 'application/json',
-                    'api-key': apiKey,
+                model: MODEL,
+                messages: messages,
+                stream: false,
+                options: {
+                    temperature: 0.9,
+                    top_p: 0.9,
+                    presence_penalty: 0.6,
+                    frequency_penalty: 0.3,
                 }
             }
         );
 
         return NextResponse.json({
-            response: response.data.choices[0].message.content,
+            response: response.data.message.content,
             status: 'success'
         });
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-        console.error('Error:', error.response?.data || error.message);
+    } catch (error) {
+        const axiosError = error as AxiosError;
+        console.error('Error:', axiosError.response?.data || axiosError.message);
         return NextResponse.json(
             { 
                 error: 'Our roasting machine is taking a coffee break. Try again!',
