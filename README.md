@@ -1,36 +1,84 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Resume Roast - AI-Powered Resume Analysis
 
-## Getting Started
+A modern web application that helps job seekers improve their resumes through AI-powered analysis and feedback. The application features two main components:
 
-First, run the development server:
+1. **Resume Roasting**: Get brutally honest feedback on your resume from an AI that specializes in pointing out flaws and weaknesses.
+2. **Premium Insights**: Access detailed ATS scoring and view resumes from MAANG company employees who graduated in the same year as you.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Features
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- 🤖 AI-powered resume roasting with witty and constructive feedback
+- 📊 ATS scoring and analysis
+- 🔍 Keyword optimization suggestions
+- 📝 Format and structure analysis
+- 👥 Access to MAANG company resumes
+- 💰 Premium features for just $1
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Tech Stack
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- Next.js 15
+- React 19
+- TypeScript
+- Tailwind CSS
+- Ollama (Open Source LLM)
+- Framer Motion
+- Radix UI
 
-## Learn More
+## Prerequisites
 
-To learn more about Next.js, take a look at the following resources:
+- Node.js 18 or later
+- Ollama installed locally (for running the LLM)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Setup
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/yourusername/resume-roast.git
+   cd resume-roast
+   ```
 
-## Deploy on Vercel
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+3. Install Ollama:
+   - Follow the instructions at [https://ollama.ai](https://ollama.ai) to install Ollama
+   - Pull the Mistral model:
+     ```bash
+     ollama pull mistral
+     ```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+4. Create a `.env.local` file in the root directory:
+   ```
+   OLLAMA_ENDPOINT=http://localhost:11434
+   OLLAMA_MODEL=mistral
+   ```
+
+5. Start the development server:
+   ```bash
+   npm run dev
+   ```
+
+6. Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+## Usage
+
+1. **Resume Roasting**:
+   - Upload your resume (PDF or DOCX)
+   - Get instant AI feedback on your resume
+   - Engage in a conversation with the AI for more specific feedback
+
+2. **Premium Insights**:
+   - Get detailed ATS scoring
+   - View keyword analysis
+   - Access MAANG company resumes
+   - Get improvement suggestions
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
