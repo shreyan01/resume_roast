@@ -108,7 +108,7 @@ export default function LandingPage() {
           <h2 className="text-5xl font-bold text-center mb-20">
             What You Get for $3/month
           </h2>
-          <div className="grid md:grid-cols-3 gap-10">
+          <div className="grid md:grid-cols-2 gap-10">
             {[
               {
                 title: "ATS Score",
@@ -128,7 +128,7 @@ export default function LandingPage() {
               }
             ].map((feature, i) => (
               <div key={i} className="group bg-gray-50 p-10 rounded-3xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-2">
-                <div className="flex items-center gap-4 mb-6">
+                <div className="flex items-center gap-8 mb-8">
                   <div className="bg-green-100 p-3 rounded-xl group-hover:scale-110 transition-transform">
                     <Check className="h-6 w-6 text-green-600" />
                   </div>
