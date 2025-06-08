@@ -2,8 +2,10 @@
 'use client'
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Check, Zap, Target, TrendingUp, Star, FileText, ArrowRight, Search, Code, MessageSquare, ShoppingCart } from 'lucide-react';
+import { Check, Zap, Target, TrendingUp, Star, FileText, ArrowRight } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { SiGoogle, SiMeta, SiAmazon } from 'react-icons/si';
+import { FaMicrosoft } from 'react-icons/fa';
 
 export default function LandingPage() {
   const router = useRouter();
@@ -47,15 +49,15 @@ export default function LandingPage() {
           </p>
           <div className="flex flex-wrap justify-center gap-16 mt-6">
             {[
-              { name: "Google", icon: Search, color: "text-[#4285F4]" },
-              { name: "Microsoft", icon: Code, color: "text-[#00A4EF]" },
-              { name: "Meta", icon: MessageSquare, color: "text-[#1877F2]" },
-              { name: "Amazon", icon: ShoppingCart, color: "text-[#FF9900]" }
+              { name: "Google", icon: SiGoogle, color: "text-[#4285F4]" },
+              { name: "Microsoft", icon: FaMicrosoft, color: "text-[#00A4EF]" },
+              { name: "Meta", icon: SiMeta, color: "text-[#1877F2]" },
+              { name: "Amazon", icon: SiAmazon, color: "text-[#FF9900]" }
             ].map((company) => (
               <div key={company.name} className="group relative">
                 <div className="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent rounded-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
                 <div className={`flex flex-col items-center gap-2 ${company.color} hover:scale-110 transition-transform duration-300`}>
-                  <company.icon className="w-12 h-12" />
+                  <company.icon className="w-16 h-16" />
                   <span className="text-sm font-medium">{company.name}</span>
                 </div>
               </div>
