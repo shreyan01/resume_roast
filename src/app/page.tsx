@@ -48,10 +48,10 @@ export default function LandingPage() {
           </p>
           <div className="flex flex-wrap justify-center gap-16 mt-6">
             {[
-              { src: "/google.png", alt: "Google" },
-              { src: "/microsoft.png", alt: "Microsoft" },
-              { src: "/meta.png", alt: "Meta" },
-              { src: "/amazon.png", alt: "Amazon" }
+              { src: "/static/google.png", alt: "Google" },
+              { src: "/static/microsoft.png", alt: "Microsoft" },
+              { src: "/static/meta.png", alt: "Meta" },
+              { src: "/static/amazon.png", alt: "Amazon" }
             ].map((company) => (
               <div key={company.alt} className="group relative">
                 <div className="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent rounded-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
