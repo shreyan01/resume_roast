@@ -45,7 +45,7 @@ export default function LandingPage() {
       <div className="bg-white/50 backdrop-blur-sm py-20 border-y border-gray-100">
         <div className="max-w-7xl mx-auto px-4 text-center">
           <p className="text-gray-600 font-medium mb-10 text-lg">
-            Trusted by job seekers from leading companies
+            Get access to resumes from top tech companies
           </p>
           <div className="flex flex-wrap justify-center gap-16 mt-6">
             {[
