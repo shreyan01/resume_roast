@@ -16,24 +16,20 @@ export interface Customer {
     status: 'active' | 'inactive';
 }
 
-// Debug logging
-console.log('Environment variables check:');
-console.log('API Key exists:', !!process.env.LEMON_SQUEEZY_API_KEY);
-console.log('Webhook Secret exists:', !!process.env.LEMON_SQUEEZY_WEBHOOK_SECRET);
-console.log('Store ID exists:', !!process.env.LEMON_SQUEEZY_STORE_ID);
-console.log('Variant ID exists:', !!process.env.NEXT_PUBLIC_LEMON_SQUEEZY_VARIANT_ID);
+// Only check environment variables on the server side
+if (typeof window === 'undefined') {
+    const LEMON_SQUEEZY_API_KEY = process.env.LEMON_SQUEEZY_API_KEY;
+    const LEMON_SQUEEZY_WEBHOOK_SECRET = process.env.LEMON_SQUEEZY_WEBHOOK_SECRET;
+    const LEMON_SQUEEZY_STORE_ID = process.env.LEMON_SQUEEZY_STORE_ID;
 
-const LEMON_SQUEEZY_API_KEY = process.env.LEMON_SQUEEZY_API_KEY!;
-const LEMON_SQUEEZY_WEBHOOK_SECRET = process.env.LEMON_SQUEEZY_WEBHOOK_SECRET!;
-const LEMON_SQUEEZY_STORE_ID = process.env.LEMON_SQUEEZY_STORE_ID!;
-
-if (!LEMON_SQUEEZY_API_KEY || !LEMON_SQUEEZY_WEBHOOK_SECRET || !LEMON_SQUEEZY_STORE_ID) {
-    console.error('Missing variables:', {
-        apiKey: !LEMON_SQUEEZY_API_KEY,
-        webhookSecret: !LEMON_SQUEEZY_WEBHOOK_SECRET,
-        storeId: !LEMON_SQUEEZY_STORE_ID
-    });
-    throw new Error('Missing required Lemon Squeezy environment variables');
+    if (!LEMON_SQUEEZY_API_KEY || !LEMON_SQUEEZY_WEBHOOK_SECRET || !LEMON_SQUEEZY_STORE_ID) {
+        console.error('Missing variables:', {
+            apiKey: !LEMON_SQUEEZY_API_KEY,
+            webhookSecret: !LEMON_SQUEEZY_WEBHOOK_SECRET,
+            storeId: !LEMON_SQUEEZY_STORE_ID
+        });
+        throw new Error('Missing required Lemon Squeezy environment variables');
+    }
 }
 
 export async function getSubscription(subscriptionId: string): Promise<Subscription | null> {
@@ -42,7 +38,7 @@ export async function getSubscription(subscriptionId: string): Promise<Subscript
             `https://api.lemonsqueezy.com/v1/subscriptions/${subscriptionId}`,
             {
                 headers: {
-                    'Authorization': `Bearer ${LEMON_SQUEEZY_API_KEY}`,
+                    'Authorization': `Bearer ${process.env.LEMON_SQUEEZY_API_KEY}`,
                     'Accept': 'application/json',
                 },
             }
@@ -66,7 +62,7 @@ export async function getCustomerSubscriptions(customerId: string): Promise<Subs
             `https://api.lemonsqueezy.com/v1/customers/${customerId}/subscriptions`,
             {
                 headers: {
-                    'Authorization': `Bearer ${LEMON_SQUEEZY_API_KEY}`,
+                    'Authorization': `Bearer ${process.env.LEMON_SQUEEZY_API_KEY}`,
                     'Accept': 'application/json',
                 },
             }
@@ -85,10 +81,10 @@ export async function getCustomerSubscriptions(customerId: string): Promise<Subs
 }
 
 export function verifyWebhookSignature(payload: string, signature: string): boolean {
-    if (!LEMON_SQUEEZY_WEBHOOK_SECRET) {
+    if (!process.env.LEMON_SQUEEZY_WEBHOOK_SECRET) {
         throw new Error('Missing LEMON_SQUEEZY_WEBHOOK_SECRET environment variable');
     }
-    const hmac = createHmac('sha256', LEMON_SQUEEZY_WEBHOOK_SECRET);
+    const hmac = createHmac('sha256', process.env.LEMON_SQUEEZY_WEBHOOK_SECRET);
     const digest = hmac.update(payload).digest('hex');
     return digest === signature;
 }
@@ -102,8 +98,12 @@ export const LEMON_SQUEEZY_VARIANT_ID = process.env.NEXT_PUBLIC_LEMON_SQUEEZY_VA
 
 export async function openCheckout() {
     try {
-        // Create checkout URL
-        const checkoutUrl = `https://${LEMON_SQUEEZY_STORE_ID}.lemonsqueezy.com/checkout/buy/${LEMON_SQUEEZY_VARIANT_ID}?checkout[custom][source]=resume_roast_ats`;
+        // Get the store ID and variant ID from the API
+        const response = await fetch('/api/lemon-squeezy/checkout-url');
+        if (!response.ok) {
+            throw new Error('Failed to get checkout URL');
+        }
+        const { checkoutUrl } = await response.json();
         
         // Open checkout in new window
         window.open(checkoutUrl, '_blank');
