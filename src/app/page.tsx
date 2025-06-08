@@ -3,7 +3,6 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Check, Zap, Target, TrendingUp, Star, FileText, ArrowRight } from 'lucide-react';
-import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 
 export default function LandingPage() {
@@ -48,22 +47,16 @@ export default function LandingPage() {
           </p>
           <div className="flex flex-wrap justify-center gap-16 mt-6">
             {[
-              { src: "/static/google.png", alt: "Google" },
-              { src: "/static/microsoft.png", alt: "Microsoft" },
-              { src: "/static/meta.png", alt: "Meta" },
-              { src: "/static/amazon.png", alt: "Amazon" }
+              { name: "Google", color: "text-[#4285F4]" },
+              { name: "Microsoft", color: "text-[#00A4EF]" },
+              { name: "Meta", color: "text-[#1877F2]" },
+              { name: "Amazon", color: "text-[#FF9900]" }
             ].map((company) => (
-              <div key={company.alt} className="group relative">
+              <div key={company.name} className="group relative">
                 <div className="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent rounded-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                <Image 
-                  className='hover:scale-110 transition-transform duration-300' 
-                  src={company.src} 
-                  alt={company.alt} 
-                  width={90} 
-                  height={90}
-                  priority
-                  quality={100}
-                />
+                <div className={`text-2xl font-bold ${company.color} hover:scale-110 transition-transform duration-300`}>
+                  {company.name}
+                </div>
               </div>
             ))}
           </div>
