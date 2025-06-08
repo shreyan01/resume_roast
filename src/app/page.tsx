@@ -57,7 +57,7 @@ export default function LandingPage() {
               <div key={company.name} className="group relative">
                 <div className="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent rounded-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
                 <div className={`flex flex-col items-center gap-2 ${company.color} hover:scale-110 transition-transform duration-300`}>
-                  <company.icon className="w-16 h-16" />
+                  <company.icon className="w-20 h-20" />
                   <span className="text-sm font-medium">{company.name}</span>
                 </div>
               </div>
