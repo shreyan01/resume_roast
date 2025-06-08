@@ -61,6 +61,8 @@ export default function LandingPage() {
                   alt={company.alt} 
                   width={90} 
                   height={90}
+                  priority
+                  quality={100}
                 />
               </div>
             ))}
