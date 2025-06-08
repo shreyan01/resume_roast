@@ -6,24 +6,29 @@ export async function middleware(req: NextRequest) {
   const res = NextResponse.next()
   const supabase = createMiddlewareClient({ req, res })
 
+  // Refresh session if expired - required for Server Components
+  await supabase.auth.getSession()
+
   const {
     data: { session },
   } = await supabase.auth.getSession()
 
-  // Allow access to landing page and signup page without authentication
-  if (req.nextUrl.pathname === '/' || req.nextUrl.pathname === '/signup') {
+  // Public routes that don't require authentication
+  const publicRoutes = ['/', '/signup', '/auth/callback']
+  if (publicRoutes.includes(req.nextUrl.pathname)) {
     return res
   }
 
-  // If user is not signed in and trying to access protected routes,
-  // redirect to signin
-  if (!session && req.nextUrl.pathname !== '/signup') {
-    return NextResponse.redirect(new URL('/signup', req.url))
+  // Protected routes - redirect to signup if not authenticated
+  if (!session && !publicRoutes.includes(req.nextUrl.pathname)) {
+    const redirectUrl = new URL('/signup', req.url)
+    redirectUrl.searchParams.set('redirectedFrom', req.nextUrl.pathname)
+    return NextResponse.redirect(redirectUrl)
   }
 
-  // If user is signed in and trying to access signin page,
+  // If user is signed in and trying to access auth pages,
   // redirect to dashboard
-  if (session && req.nextUrl.pathname === '/signup') {
+  if (session && (req.nextUrl.pathname === '/signup')) {
     return NextResponse.redirect(new URL('/dashboard', req.url))
   }
 
