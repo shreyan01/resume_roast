@@ -35,7 +35,7 @@ export default function LandingPage() {
             <FileText className="mr-2 h-5 w-5 group-hover:rotate-6 transition-transform" />
             Roast My Resume (Free)
           </Button>
-          <Button size="lg" variant="outline" className="group border-2 border-red-600 text-red-600 hover:bg-red-50 h-16 text-lg px-8 hover:scale-105 transition-all duration-300">
+          <Button onClick={() => router.push('/signup')} size="lg" variant="outline" className="group border-2 border-red-600 text-red-600 hover:bg-red-50 h-16 text-lg px-8 hover:scale-105 transition-all duration-300">
             $3/month Premium <Zap className="ml-2 h-5 w-5 group-hover:animate-pulse" />
           </Button>
         </div>
@@ -185,10 +185,10 @@ export default function LandingPage() {
             Get roasted for free or unlock premium insights for just $3/month
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-6 max-w-2xl mx-auto">
-            <Button size="lg" variant="default" className="group bg-white text-red-600 hover:bg-gray-50 h-16 text-lg px-8 shadow-2xl shadow-red-900/20">
+            <Button onClick={() => router.push('/signup')} size="lg" variant="default" className="group bg-white text-red-600 hover:bg-gray-50 h-16 text-lg px-8 shadow-2xl shadow-red-900/20">
               Start Free Roast <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
             </Button>
-            <Button size="lg" variant="outline" className="group border-2 border-white text-black hover:bg-red-500 h-16 text-lg px-8">
+            <Button onClick={() => router.push('/signup')} size="lg" variant="outline" className="group border-2 border-white text-black hover:bg-red-500 h-16 text-lg px-8">
               Upgrade to Premium for just $3/month<Zap className="ml-2 h-5 w-5 group-hover:animate-pulse" />
             </Button>
           </div>
