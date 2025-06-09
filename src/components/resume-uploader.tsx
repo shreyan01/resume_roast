@@ -61,13 +61,14 @@ export default function ResumeUploader({ onUploadComplete }: Props) {
       })
 
       if (!response.ok) {
-        throw new Error('Failed to upload file')
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to upload file')
       }
 
       const data = await response.json()
       onUploadComplete({
         id: Math.random().toString(36).substr(2, 9),
-        userId: 'temp-user-id', // This should be replaced with actual user ID
+        userId: 'temp-user-id',
         name: file.name,
         fileName: file.name,
         fileUrl: URL.createObjectURL(file),

@@ -44,6 +44,11 @@ export default function RoastingExperience({ resume, status, onReset }: Props) {
           body: JSON.stringify({ resumeText: resume.content })
         })
         
+        if (!response.ok) {
+          const errorData = await response.json()
+          throw new Error(errorData.error || 'Failed to get roast')
+        }
+
         const data = await response.json()
         if (data.status === 'success') {
           setMessages([{
@@ -68,7 +73,7 @@ export default function RoastingExperience({ resume, status, onReset }: Props) {
 
   const handleSendMessage = async () => {
     if (!userInput.trim() || isLoading) return
-    const newUserMessage = { role: 'user' as const, content: userInput, type: 'user' as const }
+    const newUserMessage = { type: 'user' as const, content: userInput }
     setMessages(prev => [...prev, newUserMessage])
     setUserInput('')
     setIsLoading(true)
@@ -85,12 +90,16 @@ export default function RoastingExperience({ resume, status, onReset }: Props) {
             })
         }) 
 
+        if (!response.ok) {
+          const errorData = await response.json()
+          throw new Error(errorData.error || 'Failed to send message')
+        }
+
         const data = await response.json()
         if (data.status === 'success') {
             setMessages(prev => [...prev, {
-                role: 'assistant',
-                content: data.response,
-                type: 'advice'  // Changed to valid type from Message union
+                type: 'advice',
+                content: data.response
             }])
         }
     } catch (error) {

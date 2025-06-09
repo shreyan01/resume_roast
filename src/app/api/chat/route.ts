@@ -1,7 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 
-const SYSTEM_PROMPT = `You are Resume Roaster, a brutally honest and sarcastic AI that specializes in roasting resumes. Your personality:
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
+interface ChatMessage {
+    type: 'user' | 'roast' | 'advice';
+    content: string;
+}
+
+type OpenAIRole = 'system' | 'user' | 'assistant';
+
+const SYSTEM_PROMPT = `You are ResumeRoaster, a brutally honest and sarcastic AI that specializes in roasting resumes. Your personality:
 
 - Be witty, sarcastic, and entertainingly cruel (but not offensive)
 - Focus ONLY on pointing out flaws and weaknesses
@@ -20,69 +30,69 @@ For improvement requests, reply with: "Oh, you want ACTUAL help? That's cute. *P
 But for now, let's get back to roasting this masterpiece..."`;
 
 export async function POST(request: NextRequest) {
+    console.log('=== Chat API Route Debug ===');
+    console.log('Request URL:', request.url);
+    console.log('Request method:', request.method);
+    
     try {
-        const endpoint = process.env.NEXT_PUBLIC_AZURE_OPENAI_ENDPOINT!;
-        const apiKey = process.env.NEXT_PUBLIC_AZURE_OPENAI_API_KEY!;
-        const deploymentName = process.env.NEXT_PUBLIC_AZURE_OPENAI_DEPLOYMENT!;
-        console.log("APIKEY EXISTS?: ", !!apiKey);
-        console.log("ENDPOINT: ", endpoint)
+        const body = await request.json();
+        const { message, conversationHistory } = body as { message: string; conversationHistory: ChatMessage[] };
 
-        if (!endpoint || !apiKey || !deploymentName) {
-            throw new Error('Azure OpenAI credentials not configured');
-        }
-
-        // Initialize Azure OpenAI client
-        const openai = new OpenAI({
-            apiKey: apiKey,
-            baseURL: endpoint,
-            defaultQuery: { 'api-version': '2024-08-01-preview' },
-            defaultHeaders: { 'api-key': apiKey }
-        });
-
-        const { message, conversationHistory, resumeText } = await request.json();
-
-        let messages = [];
-        if (resumeText) {
-            messages = [
-                { role: 'system', content: SYSTEM_PROMPT },
-                { role: 'user', content: `Roast this resume (be brutal but funny): ${resumeText}` }
-            ];
-        } else if (message) {
-            messages = [
-                { role: 'system', content: SYSTEM_PROMPT },
-                ...conversationHistory,
-                { role: 'user', content: message }
-            ];
-        } else {
+        if (!message) {
             return NextResponse.json(
-                { error: 'No file or message provided' },
+                { error: 'No message provided' },
                 { status: 400 }
             );
         }
 
+        // Check if OpenAI API key is configured
+        if (!process.env.OPENAI_API_KEY) {
+            console.error('OpenAI API key is not configured');
+            return NextResponse.json(
+                { error: 'OpenAI API key is not configured' },
+                { status: 500 }
+            );
+        }
+
+        const openai = new OpenAI({
+            apiKey: process.env.OPENAI_API_KEY,
+        });
+
+        // Convert conversation history to OpenAI format
+        const messages: { role: OpenAIRole; content: string }[] = [
+            { role: 'system', content: SYSTEM_PROMPT },
+            ...conversationHistory.map((msg) => ({
+                role: msg.type === 'user' ? 'user' : 'assistant' as OpenAIRole,
+                content: msg.content
+            })),
+            { role: 'user', content: message }
+        ];
+
+        console.log('Sending request to OpenAI...');
         const completion = await openai.chat.completions.create({
-            model: deploymentName,
+            model: "gpt-3.5-turbo",
             messages: messages,
-            max_tokens: 800,
             temperature: 0.9,
+            max_tokens: 800,
             presence_penalty: 0.6,
             frequency_penalty: 0.3,
         });
 
+        console.log('Successfully received response from OpenAI');
         return NextResponse.json({
             response: completion.choices[0].message.content,
             status: 'success'
         });
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-        console.error('Azure OpenAI Error:', error);
+    } catch (error) {
+        console.error('Unexpected error in /api/chat:', error);
         return NextResponse.json(
             { 
                 error: 'Our roasting machine is taking a coffee break. Try again!',
+                details: error instanceof Error ? error.message : 'Unknown error',
                 status: 'error'
             },
             { status: 500 }
         );
     }
-} 
+}
