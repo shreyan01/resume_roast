@@ -38,10 +38,12 @@ export default function RoastingExperience({ resume, status, onReset }: Props) {
     const getInitialRoast = async () => {
       setIsLoading(true)
       try {
-        const response = await fetch('/api/roast', {
+        const formData = new FormData();
+        formData.append('resume', resume.content);
+
+        const response = await fetch('/api/chat', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ resumeText: resume.content })
+          body: formData
         })
         
         if (!response.ok) {
