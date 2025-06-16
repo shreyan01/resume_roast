@@ -1,16 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
-import officeParser from 'officeparser';
+import { PDFDocument } from 'pdf-lib';
 
 export const dynamic = 'force-dynamic';
-export const runtime = 'nodejs';
-
-interface ChatMessage {
-    type: 'user' | 'roast' | 'advice';
-    content: string;
-}
-
-type OpenAIRole = 'system' | 'user' | 'assistant';
 
 const SYSTEM_PROMPT = `You are ResumeRoaster, a brutally honest and sarcastic AI that specializes in roasting resumes. Your personality:
 
@@ -26,7 +18,7 @@ const SYSTEM_PROMPT = `You are ResumeRoaster, a brutally honest and sarcastic AI
   2. 2-3 specific issues with the resume
   3. A sarcastic closing remark
 
-For improvement requests, reply with: "Oh, you want ACTUAL help? That's cute. *Premium Feature Alert* 💅 For just $1, you can get:
+For improvement requests, reply with: "Oh, you want ACTUAL help? That's cute. *Premium Feature Alert* 💅 For just $3/month, you can get:
 - Real ATS scoring (not just me roasting you)
 - Keyword analysis (big words I promise you're missing)
 - Format fixes (because this needs work)
@@ -34,15 +26,30 @@ For improvement requests, reply with: "Oh, you want ACTUAL help? That's cute. *P
 
 But for now, let's get back to roasting this masterpiece..."`;
 
-async function parseResumeFile(file: File): Promise<string> {
-    const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
+interface ChatMessage {
+    role: 'user' | 'assistant';
+    content: string;
+}
+
+async function convertPDFToPNG(pdfBuffer: Buffer): Promise<string> {
     try {
-        const text = await officeParser.parseOfficeAsync(buffer);
-        return text;
+        // Load the PDF document
+        const pdfDoc = await PDFDocument.load(pdfBuffer);
+        
+        // Create a new PDF with just the first page
+        const newPdf = await PDFDocument.create();
+        const [copiedPage] = await newPdf.copyPages(pdfDoc, [0]);
+        newPdf.addPage(copiedPage);
+        
+        // Save as PDF bytes
+        const pdfBytes = await newPdf.save();
+        
+        // Convert to base64
+        const base64 = Buffer.from(pdfBytes).toString('base64');
+        return `data:application/pdf;base64,${base64}`;
     } catch (error) {
-        console.error('Parse error:', error);
-        throw new Error('Failed to parse file. Please ensure it\'s a valid PDF or DOCX file.');
+        console.error('Error converting PDF:', error);
+        throw new Error('Failed to process PDF');
     }
 }
 
@@ -80,14 +87,102 @@ export async function POST(request: NextRequest) {
                 size: resumeFile.size
             });
 
-            try {
-                message = await parseResumeFile(resumeFile);
-                console.log('File parsed successfully, text length:', message.length);
-            } catch (error) {
-                console.error('File parsing error:', error);
+            // Validate file size
+            if (resumeFile.size > 5 * 1024 * 1024) {
                 return NextResponse.json(
                     { 
-                        error: 'Failed to parse file. Please ensure it\'s a valid PDF or DOCX file.',
+                        error: 'File size must be less than 5MB',
+                        status: 'error'
+                    },
+                    { status: 400 }
+                );
+            }
+
+            // Validate file type
+            const allowedTypes = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+            if (!allowedTypes.includes(resumeFile.type)) {
+                return NextResponse.json(
+                    { 
+                        error: 'Only PDF and DOCX files are supported',
+                        status: 'error'
+                    },
+                    { status: 400 }
+                );
+            }
+
+            // Convert file to buffer
+            const arrayBuffer = await resumeFile.arrayBuffer();
+            const buffer = Buffer.from(arrayBuffer);
+
+            // Convert PDF to base64 if it's a PDF
+            let dataUrl: string;
+            if (resumeFile.type === 'application/pdf') {
+                dataUrl = await convertPDFToPNG(buffer);
+            } else {
+                // For DOCX, we'll need to handle differently
+                throw new Error('DOCX files are not supported yet. Please convert to PDF first.');
+            }
+
+            // Check if OpenAI API key is configured
+            if (!process.env.OPENAI_API_KEY) {
+                console.error('OpenAI API key is not configured');
+                return NextResponse.json(
+                    { 
+                        error: 'OpenAI API key is not configured',
+                        status: 'error'
+                    },
+                    { status: 500 }
+                );
+            }
+
+            const openai = new OpenAI({
+                apiKey: process.env.OPENAI_API_KEY,
+            });
+
+            // Send file directly to OpenAI
+            console.log('Sending file to OpenAI...');
+            const completion = await openai.chat.completions.create({
+                model: "gpt-4",
+                messages: [
+                    {
+                        role: "system",
+                        content: SYSTEM_PROMPT
+                    },
+                    {
+                        role: "user",
+                        content: [
+                            {
+                                type: "text",
+                                text: "Please roast this resume brutally but professionally. Point out its flaws and weaknesses."
+                            },
+                            {
+                                type: "image_url",
+                                image_url: {
+                                    url: dataUrl
+                                }
+                            }
+                        ]
+                    }
+                ],
+                max_tokens: 1000
+            });
+
+            console.log('Successfully received response from OpenAI');
+            return NextResponse.json({
+                response: completion.choices[0].message.content,
+                status: 'success'
+            });
+
+        } else {
+            // Handle text message
+            const body = await request.json();
+            message = body.message;
+            conversationHistory = body.conversationHistory || [];
+
+            if (!message) {
+                return NextResponse.json(
+                    { 
+                        error: 'Message is required',
                         status: 'error'
                     },
                     { status: 400 }
@@ -112,129 +207,39 @@ export async function POST(request: NextRequest) {
 
             // Send text to OpenAI
             console.log('Sending text to OpenAI...');
-            try {
-                const completion = await openai.chat.completions.create({
-                    model: "gpt-3.5-turbo",
-                    messages: [
-                        { role: 'system', content: SYSTEM_PROMPT },
-                        {
-                            role: 'user',
-                            content: `Roast this resume (be brutal but funny):\n\n${message}`
-                        }
-                    ],
-                    temperature: 0.9,
-                    max_tokens: 800,
-                    presence_penalty: 0.6,
-                    frequency_penalty: 0.3,
-                });
-
-                console.log('Successfully received response from OpenAI');
-                return NextResponse.json({
-                    response: completion.choices[0].message.content,
-                    status: 'success'
-                });
-            } catch (openaiError) {
-                console.error('OpenAI API error:', openaiError);
-                return NextResponse.json(
-                    { 
-                        error: 'Failed to get response from OpenAI',
-                        status: 'error'
+            const completion = await openai.chat.completions.create({
+                model: "gpt-4",
+                messages: [
+                    {
+                        role: "system",
+                        content: SYSTEM_PROMPT
                     },
-                    { status: 500 }
-                );
-            }
-
-        } else if (contentType.includes('application/json')) {
-            // Handle chat message
-            console.log('Processing chat message...');
-            const body = await request.json();
-            message = body.message;
-            conversationHistory = body.conversationHistory || [];
-            
-            if (!message) {
-                console.log('No message found in JSON body');
-                return NextResponse.json(
-                    { 
-                        error: 'No message provided',
-                        status: 'error'
-                    },
-                    { status: 400 }
-                );
-            }
-            console.log('Received message length:', message.length);
-
-            // Check if OpenAI API key is configured
-            if (!process.env.OPENAI_API_KEY) {
-                console.error('OpenAI API key is not configured');
-                return NextResponse.json(
-                    { 
-                        error: 'OpenAI API key is not configured',
-                        status: 'error'
-                    },
-                    { status: 500 }
-                );
-            }
-
-            const openai = new OpenAI({
-                apiKey: process.env.OPENAI_API_KEY,
+                    ...conversationHistory.map(msg => ({
+                        role: msg.role,
+                        content: msg.content
+                    })),
+                    {
+                        role: "user",
+                        content: message
+                    }
+                ],
+                max_tokens: 1000
             });
 
-            // Convert conversation history to OpenAI format
-            const messages: { role: OpenAIRole; content: string }[] = [
-                { role: 'system', content: SYSTEM_PROMPT },
-                ...conversationHistory.map((msg) => ({
-                    role: msg.type === 'user' ? 'user' : 'assistant' as OpenAIRole,
-                    content: msg.content
-                })),
-                { role: 'user', content: message }
-            ];
-
-            console.log('Sending request to OpenAI...');
-            try {
-                const completion = await openai.chat.completions.create({
-                    model: "gpt-3.5-turbo",
-                    messages: messages,
-                    temperature: 0.9,
-                    max_tokens: 800,
-                    presence_penalty: 0.6,
-                    frequency_penalty: 0.3,
-                });
-
-                console.log('Successfully received response from OpenAI');
-                return NextResponse.json({
-                    response: completion.choices[0].message.content,
-                    status: 'success'
-                });
-            } catch (openaiError) {
-                console.error('OpenAI API error:', openaiError);
-                return NextResponse.json(
-                    { 
-                        error: 'Failed to get response from OpenAI',
-                        status: 'error'
-                    },
-                    { status: 500 }
-                );
-            }
-        } else {
-            console.log('Unsupported content type:', contentType);
-            return NextResponse.json(
-                { 
-                    error: 'Unsupported content type',
-                    status: 'error'
-                },
-                { status: 400 }
-            );
+            console.log('Successfully received response from OpenAI');
+            return NextResponse.json({
+                response: completion.choices[0].message.content,
+                status: 'success'
+            });
         }
-
     } catch (error) {
-        console.error('Unexpected error in /api/chat:', error);
+        console.error('Error:', error);
         return NextResponse.json(
             { 
-                error: 'Our roasting machine is taking a coffee break. Try again!',
-                details: error instanceof Error ? error.message : 'Unknown error',
+                error: 'Failed to process request. Please try again.',
                 status: 'error'
             },
             { status: 500 }
         );
     }
-} 
+}

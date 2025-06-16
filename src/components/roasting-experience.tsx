@@ -39,7 +39,8 @@ export default function RoastingExperience({ resume, status, onReset }: Props) {
       setIsLoading(true)
       try {
         const formData = new FormData();
-        formData.append('resume', resume.content);
+        const file = new File([resume.content], resume.fileName, { type: resume.type });
+        formData.append('resume', file);
 
         const response = await fetch('/api/chat', {
           method: 'POST',
@@ -71,7 +72,7 @@ export default function RoastingExperience({ resume, status, onReset }: Props) {
       
       return () => clearTimeout(upsellTimer)
     }
-  }, [status, resume.content])
+  }, [status, resume.content, resume.fileName, resume.type])
 
   const handleSendMessage = async () => {
     if (!userInput.trim() || isLoading) return
